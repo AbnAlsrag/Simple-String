@@ -27,7 +27,6 @@
 */
 
 #include <Simple String.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -301,11 +300,9 @@ void String_Replace(String str, const char* text, unsigned int start)
 
 void String_ReplaceString(String str, String text, unsigned int start)
 {
-    unsigned int textSize = String_StringSize(text);
-
-    if(textSize < str->len)
+    if(text->len < str->len)
     {
-        for(unsigned int i = start; i < str->len && i-start < textSize; i++)
+        for(unsigned int i = start; i < str->len && i-start < text->len; i++)
         {
             str->data[i] = text->data[i-start];
         }
