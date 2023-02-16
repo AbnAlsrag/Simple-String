@@ -32,10 +32,12 @@
 typedef struct String *String;
 
 String String_Create(const char* text);
+String String_CreateFromFile(const char* path);
 String String_SubString(String str, unsigned int start, unsigned int end);
 void String_Destroy(String str);
+void String_Swap(String str1, String str2);
 int String_CompareString(String str1, String str2);
-void String_CopyString(String str1, String str2);
+void String_CopyString(String dst, String src);
 void String_Append(String str, const char* text);
 void String_AppendString(String str, String text);
 void String_AppendChar(String str, const char text);
@@ -45,6 +47,7 @@ void String_InsertChar(String str, const char text, unsigned int pos);
 void String_Replace(String str, const char* text, unsigned int start);
 void String_ReplaceString(String str, String text, unsigned int start);
 void String_ReplaceChar(String str, const char text, unsigned int start);
+void String_Move(String str, unsigned int start1, unsigned int end1, unsigned int pos);
 void String_Remove(String str, unsigned int start, unsigned int end);
 const char* String_GetString(String str);
 unsigned int String_GetSize(String str);

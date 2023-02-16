@@ -27,6 +27,7 @@
 */
 
 #include <Simple String.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -34,6 +35,7 @@ typedef struct String
 {
     char* data;
     unsigned int len, bytes;
+    int refrenced;
 } *String;
 
 unsigned int String_StringSize(const char* text)
@@ -53,6 +55,20 @@ int String_HasFreeSpace(String str)
         return 1;
     else
         return 0;
+}
+
+String String_CreateSizeOf(unsigned int size)
+{
+    String str = malloc(sizeof(String));
+
+    unsigned int len = size;
+    unsigned int bytes = size+1;
+    str->len = len;
+    str->bytes = bytes;
+    str->data = (char*)malloc(bytes);
+    str->data[len] = '\0';
+
+    return str;
 }
 
 String String_Create(const char* text)
@@ -80,16 +96,23 @@ String String_Create(const char* text)
     return str;
 }
 
-String String_CreateSizeOf(unsigned int size)
+String String_CreateFromFile(const char* path)
 {
-    String str = malloc(sizeof(String));
+    FILE* file = fopen(path, "rb");
 
-    unsigned int len = size;
-    unsigned int bytes = size+1;
-    str->len = len;
-    str->bytes = bytes;
-    str->data = (char*)malloc(bytes);
-    str->data[len] = '\0';
+    if(file == NULL)
+    {
+        fclose(file);
+    }
+
+    fseek(file, 0, SEEK_END);
+    unsigned int fileSize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    
+    String str = String_CreateSizeOf(fileSize);
+
+    fread(str->data, 1, fileSize, file);
+    fclose(file);
 
     return str;
 }
@@ -117,8 +140,22 @@ String String_SubString(String str, unsigned int start, unsigned int end)
 
 void String_Destroy(String str)
 {
-    free(str->data);
+    if(str->refrenced == 0)
+        free(str->data);
+
     free(str);
+}
+
+//WIP
+void String_Swap(String str1, String str2)
+{
+    String str3 = String_Create(String_GetString(str1));
+    String_Destroy(str1);
+    str1 = String_Create(String_GetString(str2));
+    String_Destroy(str2);
+    str2 = String_Create(String_GetString(str3));
+
+    String_Destroy(str3);
 }
 
 int String_CompareString(String str1, String str2)
@@ -141,12 +178,15 @@ int String_CompareString(String str1, String str2)
     return result;
 }
 
-void String_CopyString(String str1, String str2)
+void String_CopyString(String dst, String src)
 {
-    free(str1->data);
-    str1->data = str2->data;
-    str1->len = str2->len;
-    str1->bytes = str2->bytes;
+    if(dst->refrenced == 0)
+        free(dst->data);
+
+    src->refrenced = 1;
+    dst->data = src->data;
+    dst->len = src->len;
+    dst->bytes = src->bytes;
 }
 
 void String_Append(String str, const char* text)
@@ -170,7 +210,7 @@ void String_Append(String str, const char* text)
     result->data[result->len] = '\0';
     
     String_CopyString(str, result);
-    free(result);
+    String_Destroy(result);
 }
 
 void String_AppendString(String str, String text)
@@ -190,7 +230,7 @@ void String_AppendString(String str, String text)
     result->data[result->len] = '\0';
     
     String_CopyString(str, result);
-    free(result);
+    String_Destroy(result);
 }
 
 void String_AppendChar(String str, const char text)
@@ -206,7 +246,7 @@ void String_AppendChar(String str, const char text)
     result->data[result->len] = '\0';
 
     String_CopyString(str, result);
-    free(result);
+    String_Destroy(result);
 }
 
 void String_Insert(String str, const char* text, unsigned int pos)
@@ -232,7 +272,7 @@ void String_Insert(String str, const char* text, unsigned int pos)
 
     result->data[result->len] = '\0';
     String_CopyString(str, result);
-    free(result);
+    String_Destroy(result);
 }
 
 void String_InsertString(String str, String text, unsigned int pos)
@@ -258,7 +298,7 @@ void String_InsertString(String str, String text, unsigned int pos)
 
     result->data[result->len] = '\0';
     String_CopyString(str, result);
-    free(result);
+    String_Destroy(result);
 }
 
 void String_InsertChar(String str, const char text, unsigned int pos)
@@ -281,7 +321,7 @@ void String_InsertChar(String str, const char text, unsigned int pos)
 
     result->data[result->len] = '\0';
     String_CopyString(str, result);
-    free(result);
+    String_Destroy(result);
 }
 
 //TODO: WIP(Replace)
@@ -315,6 +355,12 @@ void String_ReplaceChar(String str, const char text, unsigned int start)
     {
         str->data[start] = text;
     }
+}
+
+//WIP
+void String_Move(String str, unsigned int start1, unsigned int end1, unsigned int pos)
+{
+
 }
 
 void String_Remove(String str, unsigned int start, unsigned int end)
